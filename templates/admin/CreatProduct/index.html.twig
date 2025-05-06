@@ -1,43 +1,159 @@
 {% extends 'admin/base.html.twig' %}
 
-
 {% block title %}Create New Product{% endblock %}
 
-{% block content %}
+{% block styles %}
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.05);
+    }
+    .form-control {
+        border-radius: 8px;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .form-control:focus {
+        box-shadow: 0 0 0 0.25rem rgba(13,110,253,0.25);
+    }
+    .image-preview {
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8f9fa;
+    }
+    .image-preview img {
+        max-width: 100%;
+        max-height: 180px;
+        border-radius: 6px;
+        display: none; /* Hidden by default */
+    }
+</style>
+{% endblock %}
 
-    <h1>Create New Product</h1>
+{% block content %}
+<div class="form-container p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Create New Product</h1>
+        <a href="{{ path('admin_product_index') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to List
+        </a>
+    </div>
 
     {{ form_start(form) }}
-        <div class="mb-3">
-            {{ form_label(form.name) }}
-            {{ form_widget(form.name, {'attr': {'class': 'form-control'}}) }}
-            {{ form_errors(form.name) }}
+        <div class="row g-4">
+            <!-- Left Column -->
+            <div class="col-md-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Product Information</label>
+                            <div class="mb-3">
+                                {{ form_label(form.name, 'Product Name', {'label_attr': {'class': 'form-label'}}) }}
+                                {{ form_widget(form.name, {'attr': {'class': 'form-control form-control-lg', 'placeholder': 'Enter product name'}}) }}
+                                {{ form_errors(form.name) }}
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label'}}) }}
+                                {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 4, 'placeholder': 'Enter product description'}}) }}
+                                {{ form_errors(form.description) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Pricing & Inventory</label>
+                            <div class="mb-3">
+                                {{ form_label(form.price, 'Price', {'label_attr': {'class': 'form-label'}}) }}
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    {{ form_widget(form.price, {'attr': {'class': 'form-control', 'placeholder': '0.00'}}) }}
+                                </div>
+                                {{ form_errors(form.price) }}
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form_label(form.quantity, 'Stock Quantity', {'label_attr': {'class': 'form-label'}}) }}
+                                {{ form_widget(form.quantity, {'attr': {'class': 'form-control', 'placeholder': 'Enter quantity'}}) }}
+                                {{ form_errors(form.quantity) }}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Product Image URL</label>
+                            <div class="image-preview mb-3" id="imagePreview">
+                                <div class="text-muted default-message">
+                                    <i class="fas fa-image fa-2x mb-2"></i>
+                                    <p class="mb-0">Image Preview</p>
+                                </div>
+                                
+                            </div>
+                            {{ form_label(form.image, 'Image URL', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.image, {'attr': {
+                                'class': 'form-control',
+                                'placeholder': 'https://example.com/image.jpg',
+                                'oninput': 'updatePreview(this.value)'
+                            }}) }}
+                            {{ form_errors(form.image) }}
+                            <small class="text-muted">Enter full image URL (e.g., https://example.com/image.jpg)</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="mb-3">
-            {{ form_label(form.description) }}
-            {{ form_widget(form.description, {'attr': {'class': 'form-control'}}) }}
-            {{ form_errors(form.description) }}
+        <div class="mt-4 text-end">
+            <button type="submit" class="btn btn-primary btn-lg px-5">
+                <i class="fas fa-save me-2"></i>Create Product
+            </button>
         </div>
-
-        <div class="mb-3">
-            {{ form_label(form.price) }}
-            {{ form_widget(form.price, {'attr': {'class': 'form-control'}}) }}
-            {{ form_errors(form.price) }}
-        </div>
-
-        <div class="mb-3">
-            {{ form_label(form.quantity) }}
-            {{ form_widget(form.quantity, {'attr': {'class': 'form-control'}}) }}
-            {{ form_errors(form.quantity) }}
-        </div>
-
-        <div class="mb-3">
-            {{ form_label(form.image) }}
-            {{ form_widget(form.image, {'attr': {'class': 'form-control'}}) }}
-            {{ form_errors(form.image) }}
-        </div>
-
-        <button class="btn btn-primary">Create Product</button>
     {{ form_end(form) }}
+</div>
+
+<script>
+function updatePreview(imageUrl) {
+    const preview = document.getElementById('previewImage');
+    const defaultMessage = document.querySelector('.default-message');
+    
+    if (imageUrl) {
+        preview.src = imageUrl;
+        preview.style.display = 'block';
+        defaultMessage.style.display = 'none';
+        
+        // Check if image loads successfully
+        preview.onerror = function() {
+            preview.style.display = 'none';
+            defaultMessage.innerHTML = `
+                <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                <span class="text-danger">Invalid image URL</span>
+            `;
+        };
+        
+        preview.onload = function() {
+            defaultMessage.style.display = 'none';
+        };
+    } else {
+        preview.style.display = 'none';
+        defaultMessage.style.display = 'block';
+        defaultMessage.innerHTML = `
+            <i class="fas fa-image fa-2x mb-2"></i>
+            <p class="mb-0">Image Preview</p>
+        `;
+    }
+}
+</script>
 {% endblock %}

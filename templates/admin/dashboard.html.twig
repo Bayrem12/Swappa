@@ -1,0 +1,195 @@
+{# templates/admin/dashboard.html.twig #}
+{% extends 'admin/base.html.twig' %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Dashboard Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Dashboard Overview</h1>
+        <div class="text-muted">Last updated: {{ "now"|date("Y-m-d H:i") }}</div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <!-- Products Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Products</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_products }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-boxes fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Registered Users</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_users }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Recent Orders (7 days)</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ recent_orders }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenue Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Monthly Revenue</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">${{ total_revenue|number_format(2) }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row">
+        <!-- Recent Products -->
+        <div class="col-xl-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Products</h6>
+                    <a href="{{ path('admin_product_index') }}" class="btn btn-sm btn-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Price</th>
+                                    <th>Stock</th>
+                                    <th>Added</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in recent_products %}
+                                <tr>
+                                    <td>{{ product.name }}</td>
+                                    <td>${{ product.price|number_format(2) }}</td>
+                                    <td>{{ product.quantity }}</td>
+                                    <td>{{ product.createdAt|date('M d, Y') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Users -->
+        <div class="col-xl-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Registrations</h6>
+                    <a href="{{ path('admin_user_index') }}" class="btn btn-sm btn-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Roles</th>
+                                    
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in recent_users %}
+                                <tr>
+                                    <td>{{ user.email }}</td>
+                                    <td>
+                                        {% for role in user.roles %}
+                                        <span class="badge bg-primary">{{ role }}</span>
+                                        {% endfor %}
+                                    </td>
+                                    
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-lg-12 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                </div>
+                <div class="card-body text-center">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ path('admin_product_new') }}" class="btn btn-primary btn-block">
+                                <i class="fas fa-plus fa-fw"></i> Add Product
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ path('admin_user_index') }}" class="btn btn-success btn-block">
+                                <i class="fas fa-users fa-fw"></i> Manage Users
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="#" class="btn btn-info btn-block">
+                                <i class="fas fa-chart-line fa-fw"></i> View Analytics
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="#" class="btn btn-warning btn-block">
+                                <i class="fas fa-cog fa-fw"></i> Settings
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

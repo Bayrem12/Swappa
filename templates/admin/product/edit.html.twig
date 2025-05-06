@@ -1,0 +1,22 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h4 class="mb-0">Edit Product: {{ product.name }}</h4>
+    </div>
+    <div class="card-body">
+        {{ form_start(form) }}
+            {{ form_widget(form) }}
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i> Update Product
+                </button>
+                <a href="{{ path('admin_product_index') }}" class="btn btn-secondary">
+                    Cancel
+                </a>
+            </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

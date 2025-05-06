@@ -45,4 +45,23 @@ class OrderRepository extends ServiceEntityRepository
 //            ->getOneOrNullResult()
 //        ;
 //    }
+public function countLastWeekOrders(): int
+{
+    return $this->createQueryBuilder('o')
+        ->select('COUNT(o.id)')
+        ->where('o.created_at >= :date')
+        ->setParameter('date', new \DateTime('-7 days'))
+        ->getQuery()
+        ->getSingleScalarResult();
+}
+
+public function getMonthlyRevenue(): float
+{
+    return $this->createQueryBuilder('o')
+        ->select('SUM(o.total)')
+        ->where('o.created_at >= :date')
+        ->setParameter('date', new \DateTime('first day of this month'))
+        ->getQuery()
+        ->getSingleScalarResult() ?? 0;
+}
 }

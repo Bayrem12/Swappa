@@ -5,6 +5,7 @@ namespace App\Controller;
 
 use App\Entity\Produit;
 use App\Entity\User;
+use App\Entity\Order;
 use App\Form\ProduitType;
 use App\Form\UserType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -19,10 +20,17 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class AdminController extends AbstractController
 {
-    #[Route('/', name: 'admin_dashboard')]
-    public function dashboard(): Response
+    #[Route('/dashboard', name: 'admin_dashboard')]
+    public function dashboard(EntityManagerInterface $em): Response
     {
-        return $this->render('admin/base.html.twig');
+        return $this->render('admin/dashboard.html.twig', [
+            'total_products' => $em->getRepository(Produit::class)->count([]),
+            'total_users' => $em->getRepository(User::class)->count([]),
+            'recent_orders' => $em->getRepository(Order::class)->countLastWeekOrders(),
+            'total_revenue' => $em->getRepository(Order::class)->getMonthlyRevenue(),
+            'recent_products' => $em->getRepository(Produit::class)->findBy([], ['created_at' => 'DESC'], 5),
+            'recent_users' => $em->getRepository(User::class)->findBy([])
+        ]);
     }
 
     #[Route('/products', name: 'admin_product_index')]
@@ -72,6 +80,78 @@ class AdminController extends AbstractController
 
         return $this->render('admin/user/index.html.twig', [
             'users' => $pagination
+        ]);
+    }
+
+    #[Route('/products/edit/{id}', name: 'admin_product_edit')]
+    public function editProduct(Request $request, Produit $product, EntityManagerInterface $em): Response
+    {
+        $form = $this->createForm(ProduitType::class, $product);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Handle image upload if using VichUploader
+            $em->flush();
+
+            $this->addFlash('success', 'Product updated successfully');
+            return $this->redirectToRoute('admin_product_index');
+        }
+
+        return $this->render('admin/product/edit.html.twig', [
+            'form' => $form->createView(),
+            'product' => $product
+        ]);
+    }
+
+    // Delete route
+    #[Route('/products/delete/{id}', name: 'admin_product_delete', methods: ['POST'])]
+    public function deleteProduct(Request $request, Produit $product, EntityManagerInterface $em): Response
+    {
+        if ($this->isCsrfTokenValid('delete'.$product->getId(), $request->request->get('_token'))) {
+            $em->remove($product);
+            $em->flush();
+        }
+        
+        return $this->redirectToRoute('admin_product_index');
+    }
+     
+
+    // Delete user route
+    #[Route('/users/delete/{id}', name: 'admin_user_delete', methods: ['POST'])]
+    public function deleteUser(Request $request, User $user, EntityManagerInterface $em): Response
+    {
+        if ($this->isCsrfTokenValid('delete'.$user->getId(), $request->request->get('_token'))) {
+            $em->remove($user);
+            $em->flush();
+        }
+        
+        return $this->redirectToRoute('admin_user_index');
+    }
+    // src/Controller/AdminController.php
+    #[Route('/orders', name: 'admin_order_index')]
+    public function orders(EntityManagerInterface $em, PaginatorInterface $paginator, Request $request): Response
+    {
+        $query = $em->getRepository(Order::class)->createQueryBuilder('o')
+            ->innerJoin('o.user', 'u')
+            ->addSelect('u')
+            ->orderBy('o.created_at', 'DESC');
+
+        $pagination = $paginator->paginate(
+            $query,
+            $request->query->getInt('page', 1),
+            10
+        );
+
+        return $this->render('admin/order/index.html.twig', [
+            'orders' => $pagination
+        ]);
+    }
+
+    #[Route('/orders/{id}', name: 'admin_order_show')]
+    public function showOrder(Order $order): Response
+    {
+        return $this->render('admin/order/show.html.twig', [
+            'order' => $order
         ]);
     }
 }

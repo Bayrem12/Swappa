@@ -79,6 +79,21 @@ class Order
     {
         return $this->orderItems;
     }
+    // In Order.php
+    #[ORM\Column(length: 20)]
+    private ?string $status = 'pending'; // Add this property
+
+    // Add getter and setter
+    public function getStatus(): ?string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(string $status): static
+    {
+        $this->status = $status;
+        return $this;
+    }
 
 
 }
