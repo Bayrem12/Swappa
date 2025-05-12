@@ -4,6 +4,7 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    openrouter.api_token: '%env(OPENROUTER_API_KEY)%'
 
 services:
     # default configuration for services in *this* file
@@ -19,6 +20,12 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+    # config/services.yaml
+
+    App\Service\AIChatService:
+        arguments:
+            $apiToken: '%openrouter.api_token%'
+
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

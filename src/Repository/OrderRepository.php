@@ -64,4 +64,16 @@ public function getMonthlyRevenue(): float
         ->getQuery()
         ->getSingleScalarResult() ?? 0;
 }
+public function getUserWithMostOrders(): array
+{
+    return $this->createQueryBuilder('o')
+        ->select('u.id, u.email, COUNT(o.id) as orderCount')
+        ->join('o.user', 'u')
+        ->groupBy('u.id')
+        ->orderBy('orderCount', 'DESC')
+        ->setMaxResults(1)
+        ->getQuery()
+        ->getOneOrNullResult();
+}
+
 }

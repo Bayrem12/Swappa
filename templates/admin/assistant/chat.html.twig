@@ -1,0 +1,29 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}AI Assistant{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">🤖 Swappa Admin Assistant</h2>
+
+    <form method="get" class="mb-3">
+        <div class="input-group">
+            <input type="text" name="question" value="{{ question }}" placeholder="Ask a question..." class="form-control" required>
+            <button class="btn btn-primary">Ask</button>
+        </div>
+    </form>
+
+    {% if question %}
+        <div class="card mb-2 p-3">
+            <strong>You:</strong> {{ question }}
+        </div>
+    {% endif %}
+
+    {% if answer %}
+        <div class="card bg-light p-3">
+            <strong>AI Assistant:</strong>
+            <div>{{ answer|raw }}</div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
