@@ -23,14 +23,22 @@ class AdminController extends AbstractController
     #[Route('/dashboard', name: 'admin_dashboard')]
     public function dashboard(EntityManagerInterface $em): Response
     {
+        $repo = $em->getRepository(Order::class);
+        $productRepo = $em->getRepository(Produit::class);
+        $userRepo = $em->getRepository(User::class);
+
         return $this->render('admin/dashboard.html.twig', [
-            'total_products' => $em->getRepository(Produit::class)->count([]),
-            'total_users' => $em->getRepository(User::class)->count([]),
-            'recent_orders' => $em->getRepository(Order::class)->countLastWeekOrders(),
-            'total_revenue' => $em->getRepository(Order::class)->getMonthlyRevenue(),
-            'recent_products' => $em->getRepository(Produit::class)->findBy([], ['created_at' => 'DESC'], 5),
-            'recent_users' => $em->getRepository(User::class)->findBy([])
+            'total_products' => count($em->getRepository(Produit::class)->findAll()),
+            'total_users' => count($em->getRepository(User::class)->findAll()),
+            'recent_orders' => $repo->countLastWeekOrders(),
+            'total_revenue' => $repo->getCompletedRevenueThisMonth(),
+            'pending_orders' => $repo->countByStatus('pending'),
+            'completed_orders' => $repo->countByStatus('completed'),
+            'cancelled_orders' => $repo->countByStatus('cancelled'),
+            'recent_products' => $productRepo->findBy([], ['created_at' => 'DESC'], 5),
+            'recent_users' => $userRepo->findBy([], ['id' => 'DESC'], 5),
         ]);
+
     }
 
     #[Route('/products', name: 'admin_product_index')]
@@ -154,4 +162,31 @@ class AdminController extends AbstractController
             'order' => $order
         ]);
     }
+    #[Route('/admin/order/{id}/complete', name: 'admin_order_complete', methods: ['POST'])]
+public function completeOrder(Order $order, EntityManagerInterface $em): Response
+{
+    $order->setStatus('completed');
+    $em->flush();
+
+    $this->addFlash('success', 'Order marked as completed.');
+    return $this->redirectToRoute('admin_order_index');
+}
+
+#[Route('/admin/order/{id}/cancel', name: 'admin_order_cancel', methods: ['POST'])]
+public function cancelOrder(Order $order, EntityManagerInterface $em): Response
+{
+    // restore product quantities
+    foreach ($order->getOrderItems() as $item) {
+        $product = $item->getProduct();
+        $product->setQuantity($product->getQuantity() + $item->getQuantity());
+        $em->persist($product);
+    }
+
+    $order->setStatus('cancelled');
+    $em->flush();
+
+    $this->addFlash('warning', 'Order has been cancelled and stock restored.');
+    return $this->redirectToRoute('admin_order_index');
+}
+
 }

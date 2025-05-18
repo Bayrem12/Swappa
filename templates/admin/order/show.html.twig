@@ -44,8 +44,26 @@
 
                             <dt class="col-sm-6">Status:</dt>
                             <dd class="col-sm-6">
-                                <span class="badge bg-primary">{{ order.status|upper }}</span>
+                                <span class="badge bg-{{ order.status == 'completed' ? 'success' : (order.status == 'cancelled' ? 'danger' : 'warning') }}">
+                                    {{ order.status|capitalize }}
+                                </span>
                             </dd>
+
+                            {% if order.status == 'pending' %}
+                                <div class="mt-3">
+                                    <form method="post" action="{{ path('admin_order_complete', { id: order.id }) }}" class="d-inline">
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-check-circle me-1"></i> Mark as Completed
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{{ path('admin_order_cancel', { id: order.id }) }}" class="d-inline">
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="fas fa-times-circle me-1"></i> Cancel Order
+                                        </button>
+                                    </form>
+                                </div>
+                            {% endif %}
+
 
                             <dt class="col-sm-6">Client Email:</dt>
                             <dd class="col-sm-6">{{ order.user.email }}</dd>

@@ -64,7 +64,7 @@ class AIChatService
                 'Content-Type' => 'application/json',
             ],
             'json' => [
-                'model' => 'openai/gpt-3.5-turbo', // You can change to mistralai/mixtral-8x7b
+                'model' => 'openai/gpt-3.5-turbo', 
                 'messages' => $messages,
                 'temperature' => 0.6,
             ],

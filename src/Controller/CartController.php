@@ -64,15 +64,26 @@ public function buy(SessionInterface $session, EntityManagerInterface $entityMan
     $order->setCreatedAt(new \DateTime());
     
     foreach ($cart as $item) {
-        $orderItem = new OrderItem();
         $product = $entityManager->getRepository(Produit::class)->find($item['id']);
-        
-        $orderItem->setProduct($product);
-        $orderItem->setQuantity($item['quantity']);
-        $orderItem->setPrice($item['price']);
-        $orderItem->setOrder($order);
-        
-        $entityManager->persist($orderItem);
+
+    // Check if there is enough stock before proceeding
+    if ($product->getQuantity() < $item['quantity']) {
+        $this->addFlash('error', "Not enough stock for {$product->getName()}.");
+        return $this->redirectToRoute('app_cart');
+    }
+
+    // Reduce the product quantity
+    $product->setQuantity($product->getQuantity() - $item['quantity']);
+
+    $orderItem = new OrderItem();
+    $orderItem->setProduct($product);
+    $orderItem->setQuantity($item['quantity']);
+    $orderItem->setPrice($item['price']);
+    $orderItem->setOrder($order);
+
+    $entityManager->persist($orderItem);
+    $entityManager->persist($product); // Ensure stock update is saved
+
     }
     
     $entityManager->persist($order);
@@ -93,33 +104,42 @@ private function calculateTotal(array $cart): float
 }
 
     #[Route('/cart/add/{id}', name: 'app_add_to_cart')]
-    public function addToCart(
-        int $id, 
-        SessionInterface $session,
-        EntityManagerInterface $entityManager
-    ): Response {
-        $product = $entityManager->getRepository(Produit::class)->find($id);
+public function addToCart(
+    int $id,
+    SessionInterface $session,
+    EntityManagerInterface $entityManager
+): Response {
+    $product = $entityManager->getRepository(Produit::class)->find($id);
 
-        if (!$product) {
-            throw $this->createNotFoundException('Product not found');
-        }
+    if (!$product) {
+        throw $this->createNotFoundException('Product not found');
+    }
 
-        $cart = $session->get('cart', []);
-
-        if (isset($cart[$id])) {
-            $cart[$id]['quantity']++;
-        } else {
-            $cart[$id] = [
-                'id' => $product->getId(),
-                'name' => $product->getName(),
-                'price' => $product->getPrice(),
-                'quantity' => 1
-            ];
-        }
-
-        $session->set('cart', $cart);
-        
-
+    if ($product->getQuantity() <= 0) {
+        $this->addFlash('error', 'This product is out of stock!');
         return $this->redirectToRoute('app_pages');
     }
+
+    $cart = $session->get('cart', []);
+
+    if (isset($cart[$id])) {
+        if ($cart[$id]['quantity'] < $product->getQuantity()) {
+            $cart[$id]['quantity']++;
+        } else {
+            $this->addFlash('error', 'Not enough stock available.');
+            return $this->redirectToRoute('app_pages');
+        }
+    } else {
+        $cart[$id] = [
+            'id' => $product->getId(),
+            'name' => $product->getName(),
+            'price' => $product->getPrice(),
+            'quantity' => 1
+        ];
+    }
+
+    $session->set('cart', $cart);
+    return $this->redirectToRoute('app_pages');
+}
+
 }

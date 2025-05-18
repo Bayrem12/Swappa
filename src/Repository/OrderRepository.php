@@ -75,5 +75,26 @@ public function getUserWithMostOrders(): array
         ->getQuery()
         ->getOneOrNullResult();
 }
+ public function countByStatus(string $status): int
+{
+    return $this->createQueryBuilder('o')
+        ->select('COUNT(o.id)')
+        ->where('o.status = :status')
+        ->setParameter('status', $status)
+        ->getQuery()
+        ->getSingleScalarResult();
+}
+
+public function getCompletedRevenueThisMonth(): float
+{
+    return $this->createQueryBuilder('o')
+        ->select('SUM(o.total)')
+        ->where('o.status = :status')
+        ->andWhere('o.created_at >= :date')
+        ->setParameter('status', 'completed')
+        ->setParameter('date', new \DateTime('first day of this month'))
+        ->getQuery()
+        ->getSingleScalarResult() ?? 0;
+}
 
 }

@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}AI Insight - {{ product.name }}{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h2 class="text-primary">{{ product.name }}</h2>
+    <p>{{ product.description }}</p>
+    <p><strong>Price:</strong> {{ product.price }} TND</p>
+
+    <hr>
+    <h4 class="text-success">AI Insight:</h4>
+    <p>{{ answer }}</p>
+
+    <a href="{{ path('app_pages') }}" class="btn btn-outline-primary mt-3">Back to Products</a>
+</div>
+{% endblock %}
